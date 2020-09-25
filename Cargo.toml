@@ -1,0 +1,13 @@
+[package]
+name = "clean-dependa"
+version = "0.1.0"
+authors = ["yashladha"]
+edition = "2018"
+
+[dependencies]
+ansi_term = "0.12.1"
+reqwest = { version = "0.10", features = ["json"] }
+tokio = { version = "0.2", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+regex = "1"
