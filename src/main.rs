@@ -89,12 +89,14 @@ async fn iterate_repos(username: &str) -> Result<(), reqwest::Error> {
         Colour::Blue.paint("Fetching repositories for the user")
     );
 
+    let repo_url = format!("https://api.github.com/users/{}/repos", username);
+
     let mut page_no: u32 = 1;
     // TODO: Convert this to iterator and chain it to the
     // pull request iterator in the second place.
     loop {
         let response_text = Client::new()
-            .get("https://api.github.com/users/yashladha/repos")
+            .get(repo_url.as_str())
             .header("Accept", "application/vnd.github.v3+json")
             .header("User-Agent", username)
             .query(&[
