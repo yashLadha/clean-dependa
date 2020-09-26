@@ -17,21 +17,24 @@ struct Pull<'a> {
 
 static CLONE_TOKEN: &'static str = env!("CLONE_TOKEN");
 
-async fn merge_pr(pull_url: &str, number: u32) -> Result<(), reqwest::Error> {
+async fn merge_pr(pull_url: &str, number: u32, username: &str) -> Result<(), reqwest::Error> {
     let merge_url = format!("{}/{}/merge", pull_url, number);
 
     Client::new()
         .put(merge_url.as_str())
         .header("Accept", "application/vnd.github.v3+json")
-        .header("User-Agent", "yashladha")
-        .basic_auth("yashladha", Some(CLONE_TOKEN.clone()))
+        .header("User-Agent", username)
+        .basic_auth(username, Some(CLONE_TOKEN.clone()))
         .send()
         .await?;
 
     Ok(())
 }
 
-async fn detect_dependabot_prs(repo: &Repository<'_>) -> Result<(), reqwest::Error> {
+async fn detect_dependabot_prs(
+    repo: &Repository<'_>,
+    username: &str,
+) -> Result<(), reqwest::Error> {
     println!(
         "{}",
         Colour::Yellow
@@ -46,7 +49,7 @@ async fn detect_dependabot_prs(repo: &Repository<'_>) -> Result<(), reqwest::Err
         let response_text = Client::new()
             .get(pull_url.as_str())
             .header("Accept", "application/vnd.github.v3+json")
-            .header("User-Agent", "yashladha")
+            .header("User-Agent", username)
             .query(&[
                 ("sort", "updated"),
                 ("direction", "desc"),
@@ -54,7 +57,7 @@ async fn detect_dependabot_prs(repo: &Repository<'_>) -> Result<(), reqwest::Err
                 ("per_page", "100"),
                 ("page", page_no.to_string().as_str()),
             ])
-            .basic_auth("yashladha", Some(CLONE_TOKEN.clone()))
+            .basic_auth(username, Some(CLONE_TOKEN.clone()))
             .send()
             .await?
             .text()
@@ -71,7 +74,7 @@ async fn detect_dependabot_prs(repo: &Repository<'_>) -> Result<(), reqwest::Err
                 "{}",
                 Colour::Red.paint(format!("Performing merge of {}", pull.title))
             );
-            merge_pr(&pull_url, pull.number).await?;
+            merge_pr(&pull_url, pull.number, username).await?;
         }
 
         page_no += 1;
@@ -80,7 +83,7 @@ async fn detect_dependabot_prs(repo: &Repository<'_>) -> Result<(), reqwest::Err
     Ok(())
 }
 
-async fn iterate_repos() -> Result<(), reqwest::Error> {
+async fn iterate_repos(username: &str) -> Result<(), reqwest::Error> {
     println!(
         "\n{}\n",
         Colour::Blue.paint("Fetching repositories for the user")
@@ -93,14 +96,14 @@ async fn iterate_repos() -> Result<(), reqwest::Error> {
         let response_text = Client::new()
             .get("https://api.github.com/users/yashladha/repos")
             .header("Accept", "application/vnd.github.v3+json")
-            .header("User-Agent", "yashladha")
+            .header("User-Agent", username)
             .query(&[
                 ("sort", "updated"),
                 ("direction", "desc"),
                 ("per_page", "100"),
                 ("page", page_no.to_string().as_str()),
             ])
-            .basic_auth("yashladha", Some(CLONE_TOKEN.clone()))
+            .basic_auth(username, Some(CLONE_TOKEN.clone()))
             .send()
             .await?
             .text()
@@ -116,7 +119,7 @@ async fn iterate_repos() -> Result<(), reqwest::Error> {
         page_no += 1;
 
         for repo in repo_list.iter() {
-            detect_dependabot_prs(repo).await?;
+            detect_dependabot_prs(repo, username).await?;
         }
     }
 
@@ -125,6 +128,10 @@ async fn iterate_repos() -> Result<(), reqwest::Error> {
 
 #[tokio::main]
 async fn main() {
+    let username: String = std::env::args()
+        .nth(1)
+        .expect("Github username needs to be passed");
+
     println!(
         "{}",
         Colour::Cyan
@@ -132,5 +139,5 @@ async fn main() {
             .paint("Clean your dependabot PRs in fastest way")
     );
 
-    iterate_repos().await.unwrap()
+    iterate_repos(&username).await.unwrap()
 }
