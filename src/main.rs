@@ -5,8 +5,6 @@ use serde::Deserialize;
 
 #[derive(Deserialize)]
 struct Repository<'a> {
-    id: u32,
-    name: &'a str,
     pulls_url: &'a str,
 }
 
