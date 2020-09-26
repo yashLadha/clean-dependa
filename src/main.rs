@@ -5,6 +5,7 @@ use serde::Deserialize;
 
 #[derive(Deserialize)]
 struct Repository<'a> {
+    name: &'a str,
     pulls_url: &'a str,
 }
 
@@ -33,7 +34,9 @@ async fn merge_pr(pull_url: &str, number: u32) -> Result<(), reqwest::Error> {
 async fn detect_dependabot_prs(repo: &Repository<'_>) -> Result<(), reqwest::Error> {
     println!(
         "{}",
-        Colour::Yellow.italic().paint("Detecting dependabot PRs")
+        Colour::Yellow
+            .italic()
+            .paint(format!("Detecting dependabot PRs for {}", repo.name))
     );
 
     let pull_url = repo.pulls_url.replace("{/number}", "");
