@@ -127,5 +127,5 @@ async fn main() {
             .paint("Clean your dependabot PRs in fastest way")
     );
 
-    iterate_repos().await;
+    iterate_repos().await.unwrap()
 }
