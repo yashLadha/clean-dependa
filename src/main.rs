@@ -14,14 +14,16 @@ struct Pull<'a> {
     number: u32,
 }
 
+static CLONE_TOKEN: &'static str = env!("CLONE_TOKEN");
+
 async fn merge_pr(pull_url: &str, number: u32) -> Result<(), reqwest::Error> {
     let merge_url = format!("{}/{}/merge", pull_url, number);
-    let clone_token = env!("CLONE_TOKEN");
+
     Client::new()
         .put(merge_url.as_str())
         .header("Accept", "application/vnd.github.v3+json")
         .header("User-Agent", "yashladha")
-        .basic_auth("yashladha", Some(clone_token.clone()))
+        .basic_auth("yashladha", Some(CLONE_TOKEN.clone()))
         .send()
         .await?;
 
@@ -34,12 +36,11 @@ async fn detect_dependabot_prs(repo: &Repository<'_>) -> Result<(), reqwest::Err
         Colour::Yellow.italic().paint("Detecting dependabot PRs")
     );
 
-    let clone_token = env!("CLONE_TOKEN");
     let pull_url = repo.pulls_url.replace("{/number}", "");
     let mut i: u32 = 0;
     let depdenda_re: Regex = Regex::new(r"^Bump.*from.*to.*$").unwrap();
     loop {
-        let response = Client::new()
+        let response_text = Client::new()
             .get(pull_url.as_str())
             .header("Accept", "application/vnd.github.v3+json")
             .header("User-Agent", "yashladha")
@@ -50,11 +51,12 @@ async fn detect_dependabot_prs(repo: &Repository<'_>) -> Result<(), reqwest::Err
                 ("per_page", "100"),
                 ("page", i.to_string().as_str()),
             ])
-            .basic_auth("yashladha", Some(clone_token.clone()))
+            .basic_auth("yashladha", Some(CLONE_TOKEN.clone()))
             .send()
+            .await?
+            .text()
             .await?;
 
-        let response_text = response.text().await?;
         let pulls: Vec<Pull> = serde_json::from_str(&response_text).unwrap();
 
         if pulls.len() == 0 {
@@ -81,12 +83,11 @@ async fn iterate_repos() -> Result<(), reqwest::Error> {
         Colour::Blue.paint("Fetching repositories for the user")
     );
 
-    let clone_token = env!("CLONE_TOKEN");
     let mut i = 0;
     // TODO: Convert this to iterator and chain it to the
     // pull request iterator in the second place.
     loop {
-        let response = Client::new()
+        let response_text = Client::new()
             .get("https://api.github.com/users/yashladha/repos")
             .header("Accept", "application/vnd.github.v3+json")
             .header("User-Agent", "yashladha")
@@ -96,11 +97,12 @@ async fn iterate_repos() -> Result<(), reqwest::Error> {
                 ("per_page", "100"),
                 ("page", i.to_string().as_str()),
             ])
-            .basic_auth("yashladha", Some(clone_token.clone()))
+            .basic_auth("yashladha", Some(CLONE_TOKEN.clone()))
             .send()
+            .await?
+            .text()
             .await?;
 
-        let response_text = response.text().await?;
         let repo_list: Vec<Repository> = serde_json::from_str(&response_text).unwrap();
 
         // Break as there are no more PRs to resolve
