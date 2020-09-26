@@ -8,6 +8,25 @@ clears up the dependabot PRs of high severity.
 
 Behind the scenes it is using the awesome 🤘Github API to perform these tasks.
 
+## Building
+
+Clone the repository and in the root directory execute the following command.
+
+```sh
+cargo build --release
+```
+
+## Usage
+
+You can use the build binary in release folder inside target directory. You need
+to pass your Github Username as the command line argument and set the
+environment variable `CLONE_TOKEN` to the github token value.
+
+```sh
+export CLONE_TOKEN="<your_github_token>"
+./target/release/clean-dependa yashladha
+```
+
 ## Enhancements Pending
 
 * To create PRs of all levels from Github and not just critical severity.
