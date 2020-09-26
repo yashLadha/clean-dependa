@@ -40,7 +40,7 @@ async fn detect_dependabot_prs(repo: &Repository<'_>) -> Result<(), reqwest::Err
     );
 
     let pull_url = repo.pulls_url.replace("{/number}", "");
-    let mut i: u32 = 0;
+    let mut page_no: u32 = 1;
     let depdenda_re: Regex = Regex::new(r"^Bump.*from.*to.*$").unwrap();
     loop {
         let response_text = Client::new()
@@ -52,7 +52,7 @@ async fn detect_dependabot_prs(repo: &Repository<'_>) -> Result<(), reqwest::Err
                 ("direction", "desc"),
                 ("state", "open"),
                 ("per_page", "100"),
-                ("page", i.to_string().as_str()),
+                ("page", page_no.to_string().as_str()),
             ])
             .basic_auth("yashladha", Some(CLONE_TOKEN.clone()))
             .send()
@@ -74,7 +74,7 @@ async fn detect_dependabot_prs(repo: &Repository<'_>) -> Result<(), reqwest::Err
             merge_pr(&pull_url, pull.number).await?;
         }
 
-        i += 1;
+        page_no += 1;
     }
 
     Ok(())
@@ -82,11 +82,11 @@ async fn detect_dependabot_prs(repo: &Repository<'_>) -> Result<(), reqwest::Err
 
 async fn iterate_repos() -> Result<(), reqwest::Error> {
     println!(
-        "\n\n{}\n",
+        "\n{}\n",
         Colour::Blue.paint("Fetching repositories for the user")
     );
 
-    let mut i = 0;
+    let mut page_no: u32 = 1;
     // TODO: Convert this to iterator and chain it to the
     // pull request iterator in the second place.
     loop {
@@ -98,7 +98,7 @@ async fn iterate_repos() -> Result<(), reqwest::Error> {
                 ("sort", "updated"),
                 ("direction", "desc"),
                 ("per_page", "100"),
-                ("page", i.to_string().as_str()),
+                ("page", page_no.to_string().as_str()),
             ])
             .basic_auth("yashladha", Some(CLONE_TOKEN.clone()))
             .send()
@@ -113,7 +113,7 @@ async fn iterate_repos() -> Result<(), reqwest::Error> {
             break;
         }
 
-        i += 1;
+        page_no += 1;
 
         for repo in repo_list.iter() {
             detect_dependabot_prs(repo).await?;
