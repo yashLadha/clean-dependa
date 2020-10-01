@@ -1,5 +1,6 @@
 use ansi_term::Colour;
 use regex::Regex;
+use futures::future::join_all;
 use reqwest::Client;
 use serde::Deserialize;
 
@@ -142,9 +143,7 @@ async fn iterate_repos(gh_handler: &GithubHandler<'_>) -> Result<(), reqwest::Er
 
         page_no += 1;
 
-        for repo in repo_list.iter() {
-            detect_dependabot_prs(repo, &gh_handler).await?;
-        }
+        join_all(repo_list.iter().map(|repo| detect_dependabot_prs(repo, &gh_handler))).await;
     }
 
     Ok(())
