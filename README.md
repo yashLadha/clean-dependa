@@ -1,4 +1,4 @@
-<p align="center"> <img width="120" height="30" src="http://ForTheBadge.com/images/badges/made-with-rust.svg" /> </p>
+<p align="center"> <img src="http://ForTheBadge.com/images/badges/made-with-rust.svg" /> </p>
 
 ## clean-dependa 🧹
 
