@@ -3,6 +3,11 @@ name = "clean-dependa"
 version = "0.1.0"
 authors = ["yashladha"]
 edition = "2018"
+description = "Clean your dependabot PRs in fastest way"
+readme = "README.md"
+homepage = "https://github.com/yashLadha/clean-dependa"
+license = "MIT OR Apache-2.0"
+keywords = ["dependabot", "clean", "clean-dependa"]
 
 [dependencies]
 ansi_term = "0.12.1"
