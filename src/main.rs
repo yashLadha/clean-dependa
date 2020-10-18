@@ -16,7 +16,7 @@ struct Pull<'a> {
     number: u32,
 }
 
-static CLONE_TOKEN: &'static str = env!("CLONE_TOKEN");
+static GITHUB_TOKEN: &'static str = env!("GITHUB_TOKEN");
 
 struct GithubHandler<'a> {
     username: &'a str,
@@ -157,7 +157,7 @@ async fn main() {
 
     let gh_handler: GithubHandler = GithubHandler {
         username: username.as_str(),
-        token: CLONE_TOKEN,
+        token: GITHUB_TOKEN,
     };
 
     println!(

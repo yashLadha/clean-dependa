@@ -23,7 +23,7 @@ to pass your Github Username as the command line argument and set the
 environment variable `CLONE_TOKEN` to the github token value.
 
 ```sh
-export CLONE_TOKEN="<your_github_token>"
+export GITHUB_TOKEN="<your_github_token>"
 ./target/release/clean-dependa yashladha
 ```
 
