@@ -1,6 +1,6 @@
 use ansi_term::Colour;
-use regex::Regex;
 use futures::future::join_all;
+use regex::Regex;
 use reqwest::Client;
 use serde::Deserialize;
 
@@ -16,7 +16,7 @@ struct Pull<'a> {
     number: u32,
 }
 
-static GITHUB_TOKEN: &'static str = env!("GITHUB_TOKEN");
+static GITHUB_TOKEN: &'static str = env!("GITHUB_TOKEN", "Please set the GITHUB_TOKEN value");
 
 struct GithubHandler<'a> {
     username: &'a str,
@@ -143,7 +143,12 @@ async fn iterate_repos(gh_handler: &GithubHandler<'_>) -> Result<(), reqwest::Er
 
         page_no += 1;
 
-        join_all(repo_list.iter().map(|repo| detect_dependabot_prs(repo, &gh_handler))).await;
+        join_all(
+            repo_list
+                .iter()
+                .map(|repo| detect_dependabot_prs(repo, &gh_handler)),
+        )
+        .await;
     }
 
     Ok(())
