@@ -40,7 +40,7 @@ impl GithubHandler<'_> {
     }
 
     fn generate_pulls_list(&self, repo: &Repository<'_>, page_no: u32) -> reqwest::RequestBuilder {
-        let pull_url = repo.pulls_url.replace("{/number}", "");
+        let pull_url = extract_pull_url(repo);
         Client::new()
             .get(&pull_url)
             .header("Accept", "application/vnd.github.v3+json")
@@ -56,7 +56,7 @@ impl GithubHandler<'_> {
     }
 
     fn generate_merge_pr(&self, repo: &Repository<'_>, pull: &Pull<'_>) -> reqwest::RequestBuilder {
-        let merge_url = format!("{}/{}/merge", repo.pulls_url, pull.number);
+        let merge_url = format!("{}/{}/merge", extract_pull_url(repo), pull.number);
 
         Client::new()
             .put(&merge_url)
@@ -66,13 +66,16 @@ impl GithubHandler<'_> {
     }
 }
 
+fn extract_pull_url(repo: &Repository) -> String {
+    return repo.pulls_url.replace("{/number}", "");
+}
+
 async fn merge_pr(
     repo: &Repository<'_>,
     pull: &Pull<'_>,
     gh_handler: &GithubHandler<'_>,
 ) -> Result<(), reqwest::Error> {
     gh_handler.generate_merge_pr(repo, pull).send().await?;
-
     Ok(())
 }
 
@@ -88,7 +91,7 @@ async fn detect_dependabot_prs(
     );
 
     let mut page_no: u32 = 1;
-    let depdenda_re: Regex = Regex::new(r"^Bump.*from.*to.*$").unwrap();
+    let depdenda_re: Regex = Regex::new(r"^(.*)bump(.*)from(.*)to(.*)$").unwrap();
     loop {
         let response_text = gh_handler
             .generate_pulls_list(repo, page_no)
@@ -103,7 +106,10 @@ async fn detect_dependabot_prs(
             break;
         }
 
-        for pull in pulls.iter().filter(|x| depdenda_re.is_match(x.title)) {
+        for pull in pulls
+            .iter()
+            .filter(|x| depdenda_re.is_match(&x.title.to_lowercase()))
+        {
             println!(
                 "{}",
                 Colour::Red.paint(format!("Performing merge of {}", pull.title))
