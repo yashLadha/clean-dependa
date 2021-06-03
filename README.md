@@ -13,19 +13,25 @@ Behind the scenes it is using the awesome 🤘Github API to perform these tasks.
 Clone the repository and in the root directory execute the following command.
 
 ```sh
-cargo build --release
+make
 ```
+
+You can find the binary at path `target/release/clean-dependa`. Move it to a
+location which is visible in your `$PATH`.
 
 ## Usage
 
 You can use the build binary in release folder inside target directory. You need
 to pass your Github Username as the command line argument and set the
-environment variable `CLONE_TOKEN` to the github token value.
+environment variable `GITHUB_TOKEN` to the github token value.
 
 ```sh
 export GITHUB_TOKEN="<your_github_token>"
-./target/release/clean-dependa yashladha
+clean-dependa yashladha
 ```
+
+You can also copy the binary in your `$PATH` so that it can be accessible from
+all the paths.
 
 ## Enhancements Pending
 
