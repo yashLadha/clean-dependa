@@ -1,6 +1,6 @@
 [package]
 name = "clean-dependa"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["yashladha"]
 edition = "2018"
 description = "Clean your dependabot PRs in fastest way"
